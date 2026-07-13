@@ -1106,3 +1106,103 @@ Object.defineProperty(window, "NWT", {
  ******************************************************************************/
 
 })();
+/******************************************************************************
+ *
+ * WEALTH SNAPSHOT MANAGER
+ *
+ * Purpose
+ * -------
+ * Creates immutable wealth snapshots used for historical tracking.
+ *
+ ******************************************************************************/
+
+NWT.Managers.Wealth = (() => {
+
+    const Logger = NWT.Logger;
+    const Events = NWT.Events;
+    const State = NWT.State;
+
+    function emptySnapshot() {
+
+        return {
+
+            timestamp: Date.now(),
+
+            np: 0,
+
+            bank: 0,
+
+            inventory: 0,
+
+            sdb: 0,
+
+            tradingPost: 0,
+
+            gallery: 0,
+
+            total: 0
+
+        };
+
+    }
+
+    function calculateTotal(snapshot) {
+
+        return (
+
+            snapshot.np +
+            snapshot.bank +
+            snapshot.inventory +
+            snapshot.sdb +
+            snapshot.tradingPost +
+            snapshot.gallery
+
+        );
+
+    }
+
+    function create(values = {}) {
+
+        const snapshot = Object.assign(
+
+            emptySnapshot(),
+
+            values
+
+        );
+
+        snapshot.total = calculateTotal(snapshot);
+
+        State.get().wealth = structuredClone(snapshot);
+
+        Events.emit("wealth:updated", snapshot);
+
+        Logger.info("Wealth snapshot created.", snapshot);
+
+        return structuredClone(snapshot);
+
+    }
+
+    function current() {
+
+        return structuredClone(
+
+            State.get().wealth
+
+        );
+
+    }
+
+    return {
+
+        create,
+
+        current,
+
+        calculateTotal
+
+    };
+
+})();
+
+NWT.Wealth = NWT.Managers.Wealth;
